@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信息学学习助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: #4285f4;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .settings-btn {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 25%;
+            background-color: #fff;
+            padding: 1rem;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .sidebar.collapsed {
+            width: 60px;
+            padding: 1rem 0.5rem;
+            overflow: hidden;
+        }
+        
+        .toggle-sidebar {
+            position: absolute;
+            right: 0.5rem;
+            top: 0.5rem;
+            background: none;
+            border: none;
+            color: #4285f4;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.25rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background-color: #f0f8ff;
+            transition: background-color 0.3s;
+            z-index: 10;
+        }
+        
+        .toggle-sidebar:hover {
+            background-color: #e0f0ff;
+        }
+        
+        .sidebar.collapsed .resources > * {
+            display: none;
+        }
+        
+        .sidebar.collapsed .resource-title,
+        .sidebar.collapsed .toggle-sidebar {
+            display: block;
+        }
+        
+        .sidebar.collapsed .toggle-sidebar {
+            right: 1rem;
+        }
+        
+        .sidebar.collapsed .resource-title {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            margin: 2rem auto;
+            white-space: nowrap;
+            text-align: center;
+        }
+        
+        .resources {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .resource-title {
+            margin-bottom: 1rem;
+            color: #4285f4;
+        }
+        
+        .resource-list {
+            list-style: none;
+        }
+        
+        .resource-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .resource-item:hover {
+            background-color: #e0f0ff;
+        }
+        
+        .resource-section {
+            margin-bottom: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .resource-section-title {
+            font-weight: bold;
+            color: #4285f4;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+        }
+        
+        .resource-section-content {
+            padding: 0.5rem;
+        }
+        
+        .resource-section-title .icon {
+            margin-right: 0.5rem;
+        }
+        
+        .local-file {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .local-file:hover {
+            background-color: #e0f0ff;
+        }
+        
+        .file-icon {
+            margin-right: 0.5rem;
+            color: #4285f4;
+        }
+        
+        .file-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .file-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #4285f4;
+            font-size: 1rem;
+        }
+        
+        .file-action-btn:hover {
+            color: #3b78e7;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            background-color: #f9f9f9;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-message {
+            align-items: flex-end;
+        }
+        
+        .assistant-message {
+            align-items: flex-start;
+        }
+        
+        .message-content {
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            max-width: 70%;
+        }
+        
+        .user-message .message-content {
+            background-color: #4285f4;
+            color: white;
+            border-top-right-radius: 4px;
+        }
+        
+        .assistant-message .message-content {
+            background-color: #f1f1f1;
+            color: #333;
+            border-top-left-radius: 4px;
+        }
+        
+        .message-image {
+            max-width: 300px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            cursor: zoom-in;
+            transition: transform 0.2s;
+        }
+        
+        .message-image:hover {
+            transform: scale(1.03);
+        }
+        
+        .message-reference {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #666;
+            background-color: #f0f8ff;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border-left: 3px solid #4285f4;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .input-container textarea {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            outline: none;
+            resize: none;
+            height: 50px;
+            font-size: 1rem;
+        }
+        
+        .input-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .action-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .send-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+        }
+        
+        .send-btn:hover {
+            background-color: #3b78e7;
+        }
+        
+        .suggestions {
+            margin-top: 1rem;
+        }
+        
+        .suggestion-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .suggestion-chip {
+            padding: 0.5rem 1rem;
+            background-color: #e0f0ff;
+            color: #4285f4;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .suggestion-chip:hover {
+            background-color: #c0e0ff;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .save-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .save-btn:hover {
+            background-color: #3b78e7;
+        }
+        
+        /* File input styling */
+        .file-input {
+            display: none;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 文件上传区域 */
+        .file-upload-area {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #4285f4;
+        }
+        
+        .file-upload-icon {
+            font-size: 2rem;
+            color: #4285f4;
+            margin-bottom: 0.5rem;
+        }
+        
+        .file-upload-text {
+            color: #666;
+        }
+        
+        /* 文档目录样式 */
+        .documents-section {
+            margin-bottom: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .documents-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #fff;
+        }
+        
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s;
+        }
+        
+        .document-item:last-child {
+            border-bottom: none;
+        }
+        
+        .document-item:hover {
+            background-color: #f5f9ff;
+        }
+        
+        .document-icon {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+        
+        .document-icon.pdf {
+            color: #e74c3c;
+        }
+        
+        .document-icon.word {
+            color: #3498db;
+        }
+        
+        .document-info {
+            flex: 1;
+        }
+        
+        .document-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .document-meta {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .document-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #4285f4;
+            font-size: 1rem;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .document-action-btn:hover {
+            background-color: #e0f0ff;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* 可折叠部分样式 */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            background-color: #f5f9ff;
+            margin-bottom: 0;
+            transition: background-color 0.3s;
+        }
+        
+        .collapsible-header:hover {
+            background-color: #e0f0ff;
+        }
+        
+        .collapsible-header .left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.expanded {
+            max-height: 500px; /* 一个合理的值，以便内容能够完全展开 */
+            overflow-y: auto;
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s;
+        }
+        
+        .collapse-icon.expanded {
+            transform: rotate(90deg);
+        }
+        
+        /* 图片查看模态框样式 */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            overflow: auto;
+        }
+        
+        .image-modal-content {
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 90%;
+            height: 90%;
+            max-width: 1200px;
+            position: relative;
+            background: none;
+            padding: 0;
+        }
+        
+        #modalImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .image-modal .close-btn {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>信息学（GESP、CSP）学习助手</h1>
+        <button class="settings-btn" id="settingsBtn">⚙️</button>
+    </header>
+    
+    <div class="main-container">
+        <div class="sidebar" id="sidebar">
+            <button class="toggle-sidebar" id="toggleSidebar">◀</button>
+            <div class="resources">
+                <h2 class="resource-title">学习资源</h2>
+                
+                <div class="resource-section">
+                    <div class="collapsible-header" data-target="onlineResources">
+                        <div class="left">
+                            <span class="icon">🌐</span>
+                            <div class="resource-section-title">在线资源</div>
+                        </div>
+                        <span class="collapse-icon">▶</span>
+                    </div>
+                    <div class="collapsible-content" id="onlineResources">
+                        <div class="resource-section-content">
+                            <ul class="resource-list" id="resourceList">
+                                <li class="resource-item" data-url="https://gesp.ccf.org.cn/101/1010/index.html">历届真题</li>
+                                <li class="resource-item" data-url="https://gesp.ccf.org.cn/101/1008/10012.html">考试大纲</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-section">
+                    <div class="collapsible-header" data-target="localFilesContent">
+                        <div class="left">
+                            <span class="icon">📝</span>
+                            <div class="resource-section-title">本地文件</div>
+                        </div>
+                        <span class="collapse-icon">▶</span>
+                    </div>
+                    <div class="collapsible-content" id="localFilesContent">
+                        <div class="resource-section-content">
+                            <h4 style="margin-bottom: 0.5rem; color: #4285f4;">真题文件</h4>
+                            <div id="localExamFiles" class="resource-list">
+                                <div class="file-upload-area" id="uploadExamArea">
+                                    <div class="file-upload-icon">📄</div>
+                                    <div class="file-upload-text">点击上传真题PDF文件</div>
+                                </div>
+                            </div>
+                            
+                            <h4 style="margin: 1rem 0 0.5rem; color: #4285f4;">大纲文件</h4>
+                            <div id="localSyllabusFiles" class="resource-list">
+                                <div class="file-upload-area" id="uploadSyllabusArea">
+                                    <div class="file-upload-icon">📄</div>
+                                    <div class="file-upload-text">点击上传大纲PDF文件</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant-message">
+                    <div class="message-content">
+                        你好！我是信息学学习助手，有任何关于信息学的问题都可以问我。
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <textarea id="userInput" placeholder="在这里输入问题..."></textarea>
+                <div class="input-actions">
+                    <input type="file" id="imageInput" class="file-input" accept="image/*">
+                    <button class="action-btn" id="imageBtn" title="上传图片">📷</button>
+                    <button class="action-btn send-btn" id="sendBtn">➤</button>
+                </div>
+            </div>
+            
+            <div class="suggestions">
+                <div class="suggestion-title">你可能想问：</div>
+                <div class="suggestion-chips" id="suggestionChips">
+                    <div class="suggestion-chip">信息学（GESP、CSP）考试内容是什么？</div>
+                    <div class="suggestion-chip">如何准备信息学（GESP、CSP）考试？</div>
+                    <div class="suggestion-chip">信息学（GESP、CSP）考试难度如何？</div>
+                    <div class="suggestion-chip">信息学（GESP、CSP）考试时间安排</div>
+                    <div class="suggestion-chip">历年信息学（GESP、CSP）通过率</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>DeepSeek API 设置</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <input type="password" id="apiKey" placeholder="输入您的 DeepSeek API Key" required>
+                </div>
+                <div class="form-group">
+                    <label for="apiEndpoint">API 端点</label>
+                    <input type="text" id="apiEndpoint" placeholder="https://api.deepseek.com/v1/chat/completions" value="https://api.deepseek.com/v1/chat/completions" required>
+                </div>
+                <div class="form-group">
+                    <label for="apiModel">文本 API 模型</label>
+                    <select id="apiModel" required>
+                        <option value="deepseek-chat">deepseek-chat</option>
+                        <option value="deepseek-coder">deepseek-coder</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="visionModel">视觉 API 模型</label>
+                    <select id="visionModel" required>
+                        <option value="deepseek-vl">deepseek-vl</option>
+                        <option value="deepseek-chat">deepseek-chat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="visionEndpoint">视觉 API 端点</label>
+                    <input type="text" id="visionEndpoint" placeholder="https://api.deepseek.com/v1/chat/completions" value="https://api.deepseek.com/v1/chat/completions" required>
+                </div>
+                <button type="submit" class="save-btn">保存设置</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 添加图片查看模态框 -->
+    <div id="imageModal" class="modal image-modal">
+        <div class="modal-content image-modal-content">
+            <span class="close-btn" id="closeImageModal">&times;</span>
+            <img id="modalImage" src="" alt="放大的图片">
+        </div>
+    </div>
+    
+    <script>
+        // 存储配置的对象
+        const config = {
+            apiKey: '',
+            apiEndpoint: 'https://api.deepseek.com/v1/chat/completions',
+            apiModel: 'deepseek-chat',
+            visionModel: 'deepseek-vl',
+            visionEndpoint: 'https://api.deepseek.com/v1/chat/completions'
+        };
+        
+        // 存储本地文件
+        const localFiles = {
+            examFiles: [],
+            syllabusFiles: []
+        };
+        
+        // 存储文档目录文件
+        const documentsFiles = [];
+        
+        // 加载保存的配置
+        function loadConfig() {
+            const savedConfig = localStorage.getItem('gespConfig');
+            if (savedConfig) {
+                Object.assign(config, JSON.parse(savedConfig));
+                document.getElementById('apiKey').value = config.apiKey;
+                document.getElementById('apiEndpoint').value = config.apiEndpoint;
+                document.getElementById('apiModel').value = config.apiModel;
+                
+                // 设置视觉模型和端点（如果不存在则使用默认值）
+                if (document.getElementById('visionModel')) {
+                    document.getElementById('visionModel').value = config.visionModel || 'deepseek-vl';
+                }
+                if (document.getElementById('visionEndpoint')) {
+                    document.getElementById('visionEndpoint').value = config.visionEndpoint || 'https://api.deepseek.com/v1/chat/completions';
+                }
+            }
+            
+            // 加载保存的本地文件
+            const savedFiles = localStorage.getItem('gespLocalFiles');
+            if (savedFiles) {
+                Object.assign(localFiles, JSON.parse(savedFiles));
+                renderLocalFiles();
+            }
+            
+            // 加载文档目录文件
+            loadDocumentsFiles();
+        }
+        
+        // 保存配置
+        function saveConfig() {
+            config.apiKey = document.getElementById('apiKey').value;
+            config.apiEndpoint = document.getElementById('apiEndpoint').value;
+            config.apiModel = document.getElementById('apiModel').value;
+            
+            // 保存视觉模型和端点
+            if (document.getElementById('visionModel')) {
+                config.visionModel = document.getElementById('visionModel').value;
+            }
+            if (document.getElementById('visionEndpoint')) {
+                config.visionEndpoint = document.getElementById('visionEndpoint').value;
+            }
+            
+            localStorage.setItem('gespConfig', JSON.stringify(config));
+        }
+        
+        // 保存本地文件
+        function saveLocalFiles() {
+            localStorage.setItem('gespLocalFiles', JSON.stringify(localFiles));
+        }
+        
+        // DOM元素
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const settingsForm = document.getElementById('settingsForm');
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const imageBtn = document.getElementById('imageBtn');
+        const imageInput = document.getElementById('imageInput');
+        const resourceList = document.getElementById('resourceList');
+        const suggestionChips = document.getElementById('suggestionChips');
+        const localExamFiles = document.getElementById('localExamFiles');
+        const localSyllabusFiles = document.getElementById('localSyllabusFiles');
+        const uploadExamArea = document.getElementById('uploadExamArea');
+        const uploadSyllabusArea = document.getElementById('uploadSyllabusArea');
+        const documentsList = document.getElementById('documentsList');
+        const browseDocumentsBtn = document.getElementById('browseDocumentsBtn');
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        
+        // 初始化侧边栏折叠状态
+        function initCollapsibleSections() {
+            // 初始化所有可折叠部分
+            const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+            collapsibleHeaders.forEach(header => {
+                header.addEventListener('click', function(event) {
+                    // 获取目标内容
+                    const targetId = this.getAttribute('data-target');
+                    const content = document.getElementById(targetId);
+                    if (!content) return;
+                    
+                    // 切换展开/折叠状态
+                    content.classList.toggle('expanded');
+                    
+                    // 更新折叠图标
+                    const icon = this.querySelector('.collapse-icon');
+                    if (icon) {
+                        icon.classList.toggle('expanded');
+                        icon.textContent = icon.classList.contains('expanded') ? '▼' : '▶';
+                    }
+                });
+            });
+            
+            // 默认展开第一个部分
+            if (collapsibleHeaders.length > 0) {
+                const firstHeader = collapsibleHeaders[0];
+                const targetId = firstHeader.getAttribute('data-target');
+                const content = document.getElementById(targetId);
+                if (content) {
+                    content.classList.add('expanded');
+                    const icon = firstHeader.querySelector('.collapse-icon');
+                    if (icon) {
+                        icon.classList.add('expanded');
+                        icon.textContent = '▼';
+                    }
+                }
+            }
+        }
+        
+        // 存储对话历史
+        const chatHistory = [];
+        
+        // 打开设置模态窗
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'block';
+        });
+        
+        // 关闭设置模态窗
+        closeModalBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+        });
+        
+        // 点击模态窗外部关闭
+        window.addEventListener('click', (event) => {
+            if (event.target === settingsModal) {
+                settingsModal.style.display = 'none';
+            }
+        });
+        
+        // 保存设置
+        settingsForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            saveConfig();
+            settingsModal.style.display = 'none';
+            addAssistantMessage('API 设置已更新！');
+        });
+        
+        // 发送消息
+        sendBtn.addEventListener('click', sendMessage);
+        
+        // 监听Enter键发送消息
+        userInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // 上传图片
+        imageBtn.addEventListener('click', () => {
+            imageInput.click();
+        });
+        
+        // 处理图片上传
+        imageInput.addEventListener('change', handleImageUpload);
+        
+        // 推荐问题点击
+        suggestionChips.addEventListener('click', (event) => {
+            if (event.target.classList.contains('suggestion-chip')) {
+                userInput.value = event.target.textContent;
+                sendMessage();
+            }
+        });
+        
+        // 资源点击
+        resourceList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('resource-item')) {
+                const url = event.target.getAttribute('data-url');
+                if (url) {
+                    window.open(url, '_blank');
+                }
+            }
+        });
+        
+        // 上传真题文件
+        uploadExamArea.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.pdf';
+            input.multiple = true;
+            input.addEventListener('change', (event) => {
+                handleFileUpload(event, 'examFiles');
+            });
+            input.click();
+        });
+        
+        // 上传大纲文件
+        uploadSyllabusArea.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.pdf';
+            input.multiple = true;
+            input.addEventListener('change', (event) => {
+                handleFileUpload(event, 'syllabusFiles');
+            });
+            input.click();
+        });
+        
+        // 处理文件上传
+        function handleFileUpload(event, fileType) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type !== 'application/pdf') {
+                    alert('请上传PDF文件');
+                    continue;
+                }
+                
+                const fileName = file.name;
+                const fileData = {
+                    name: fileName,
+                    type: fileType,
+                    data: null
+                };
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    fileData.data = e.target.result;
+                    localFiles[fileType].push(fileData);
+                    saveLocalFiles();
+                    renderLocalFiles();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 渲染本地文件
+        function renderLocalFiles() {
+            // 渲染真题文件
+            renderFileList(localExamFiles, localFiles.examFiles, 'examFiles');
+            
+            // 渲染大纲文件
+            renderFileList(localSyllabusFiles, localFiles.syllabusFiles, 'syllabusFiles');
+        }
+        
+        // 渲染文件列表
+        function renderFileList(container, files, fileType) {
+            // 保留上传区域
+            const uploadArea = container.querySelector('.file-upload-area');
+            container.innerHTML = '';
+            container.appendChild(uploadArea);
+            
+            // 添加文件列表
+            files.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.classList.add('local-file');
+                
+                const fileIcon = document.createElement('div');
+                fileIcon.classList.add('file-icon');
+                fileIcon.textContent = '📄';
+                
+                const fileName = document.createElement('div');
+                fileName.classList.add('file-name');
+                fileName.textContent = file.name;
+                
+                const fileActions = document.createElement('div');
+                fileActions.classList.add('file-actions');
+                
+                const viewBtn = document.createElement('button');
+                viewBtn.classList.add('file-action-btn');
+                viewBtn.textContent = '👁️';
+                viewBtn.title = '查看文件';
+                viewBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    viewFile(file);
+                });
+                
+                const referenceBtn = document.createElement('button');
+                referenceBtn.classList.add('file-action-btn');
+                referenceBtn.textContent = '💬';
+                referenceBtn.title = '引用文件';
+                referenceBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    referenceFile(file);
+                });
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.classList.add('file-action-btn');
+                deleteBtn.textContent = '🗑️';
+                deleteBtn.title = '删除文件';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteFile(fileType, index);
+                });
+                
+                fileActions.appendChild(viewBtn);
+                fileActions.appendChild(referenceBtn);
+                fileActions.appendChild(deleteBtn);
+                
+                fileElement.appendChild(fileIcon);
+                fileElement.appendChild(fileName);
+                fileElement.appendChild(fileActions);
+                
+                container.appendChild(fileElement);
+            });
+        }
+        
+        // 加载文档目录文件
+        function loadDocumentsFiles() {
+            // 使用FileSystem API遍历documents目录下的文件
+            try {
+                // 创建一个input元素来选择目录
+                const dirInput = document.createElement('input');
+                dirInput.type = 'file';
+                dirInput.webkitdirectory = true;
+                dirInput.directory = true;
+                dirInput.multiple = true;
+                
+                dirInput.onchange = function(event) {
+                    const files = event.target.files;
+                    if (!files || files.length === 0) {
+                        renderEmptyDocumentsList();
+                        return;
+                    }
+                    
+                    // 清空现有文件列表
+                    documentsFiles.length = 0;
+                    
+                    // 过滤出documents目录下的文件并按修改日期排序
+                    const documentsPathRegex = /documents\//i;
+                    
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        
+                        // 检查文件是否在documents目录或其子目录下
+                        if (documentsPathRegex.test(file.webkitRelativePath)) {
+                            const fileType = getFileExtension(file.name);
+                            
+                            // 只处理PDF和Word文档
+                            if (fileType === 'pdf' || fileType === 'docx' || fileType === 'doc') {
+                                // 读取文件内容
+                                const reader = new FileReader();
+                                reader.onload = (function(theFile, fileType) {
+                                    return function(e) {
+                                        // 添加到文档列表
+                                        documentsFiles.push({
+                                            name: theFile.name,
+                                            type: fileType,
+                                            size: formatFileSize(theFile.size),
+                                            date: formatDate(new Date(theFile.lastModified)),
+                                            path: theFile.webkitRelativePath,
+                                            data: e.target.result
+                                        });
+                                        
+                                        // 每次添加后都重新渲染
+                                        renderDocumentsFiles();
+                                    };
+                                })(file, fileType);
+                                
+                                // 读取文件内容
+                                reader.readAsDataURL(file);
+                            }
+                        }
+                    }
+                    
+                    // 如果没有找到文件，显示空列表提示
+                    if (documentsFiles.length === 0) {
+                        renderEmptyDocumentsList();
+                    }
+                };
+                
+                // 自动触发文件选择对话框
+                dirInput.click();
+            } catch (error) {
+                console.error('无法访问文件系统:', error);
+                // 使用模拟数据作为备选
+                useMockDocumentsData();
+            }
+        }
+        
+        // 如果无法访问文件系统，使用模拟数据
+        function useMockDocumentsData() {
+            const mockFiles = [
+                { name: 'GESP一级真题2023.pdf', type: 'pdf', size: '2.5MB', date: '2023-12-15' },
+                { name: 'GESP二级真题2023.pdf', type: 'pdf', size: '3.1MB', date: '2023-12-15' },
+                { name: 'GESP考试大纲2023.docx', type: 'word', size: '1.8MB', date: '2023-11-20' },
+                { name: 'GESP编程题解析.pdf', type: 'pdf', size: '4.2MB', date: '2023-10-05' },
+                { name: 'GESP考试指南.docx', type: 'word', size: '2.1MB', date: '2023-09-15' },
+                { name: 'GESP历年真题汇总.pdf', type: 'pdf', size: '5.7MB', date: '2023-08-22' }
+            ];
+            
+            // 修复语法错误并显示提示消息
+            addAssistantMessage("注意：当前使用的是模拟文档数据。要访问真实文档，请点击文档目录区域选择documents目录。");
+            
+            documentsFiles.length = 0;
+            documentsFiles.push(...mockFiles);
+            
+            renderDocumentsFiles();
+        }
+        
+        // 渲染空文档列表提示
+        function renderEmptyDocumentsList() {
+            documentsList.innerHTML = '';
+            
+            const emptyMessage = document.createElement('div');
+            emptyMessage.style.padding = '1rem';
+            emptyMessage.style.textAlign = 'center';
+            emptyMessage.style.color = '#888';
+            emptyMessage.textContent = '未找到documents目录下的文件。点击此处浏览目录。';
+            emptyMessage.style.cursor = 'pointer';
+            emptyMessage.addEventListener('click', loadDocumentsFiles);
+            
+            documentsList.appendChild(emptyMessage);
+        }
+        
+        // 获取文件扩展名
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(size) {
+            if (size < 1024) {
+                return size + ' B';
+            } else if (size < 1024 * 1024) {
+                return (size / 1024).toFixed(1) + ' KB';
+            } else if (size < 1024 * 1024 * 1024) {
+                return (size / (1024 * 1024)).toFixed(1) + ' MB';
+            } else {
+                return (size / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+            }
+        }
+        
+        // 格式化日期
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+        
+        // 渲染文档目录文件
+        function renderDocumentsFiles() {
+            documentsList.innerHTML = '';
+            
+            if (documentsFiles.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.style.padding = '1rem';
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.color = '#888';
+                emptyMessage.textContent = '暂无文档';
+                documentsList.appendChild(emptyMessage);
+                return;
+            }
+            
+            documentsFiles.forEach((file, index) => {
+                const documentItem = document.createElement('div');
+                documentItem.classList.add('document-item');
+                
+                const documentIcon = document.createElement('div');
+                documentIcon.classList.add('document-icon', file.type);
+                documentIcon.textContent = file.type === 'pdf' ? '📄' : '📝';
+                
+                const documentInfo = document.createElement('div');
+                documentInfo.classList.add('document-info');
+                
+                const documentName = document.createElement('div');
+                documentName.classList.add('document-name');
+                documentName.textContent = file.name;
+                
+                const documentMeta = document.createElement('div');
+                documentMeta.classList.add('document-meta');
+                documentMeta.textContent = `${file.size} · ${file.date}`;
+                
+                documentInfo.appendChild(documentName);
+                documentInfo.appendChild(documentMeta);
+                
+                const documentActions = document.createElement('div');
+                documentActions.classList.add('document-actions');
+                
+                const viewBtn = document.createElement('button');
+                viewBtn.classList.add('document-action-btn');
+                viewBtn.textContent = '👁️';
+                viewBtn.title = '查看文件';
+                viewBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    viewDocument(file);
+                });
+                
+                const referenceBtn = document.createElement('button');
+                referenceBtn.classList.add('document-action-btn');
+                referenceBtn.textContent = '💬';
+                referenceBtn.title = '引用文件';
+                referenceBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    referenceDocument(file);
+                });
+                
+                documentActions.appendChild(viewBtn);
+                documentActions.appendChild(referenceBtn);
+                
+                documentItem.appendChild(documentIcon);
+                documentItem.appendChild(documentInfo);
+                documentItem.appendChild(documentActions);
+                
+                documentsList.appendChild(documentItem);
+            });
+        }
+        
+        // 查看文档
+        function viewDocument(file) {
+            if (file.data) {
+                // 如果有文件数据，在新窗口中打开
+                const win = window.open('', '_blank');
+                win.document.write(`
+                    <html>
+                    <head>
+                        <title>${file.name}</title>
+                        <style>
+                            body, html {
+                                margin: 0;
+                                padding: 0;
+                                height: 100%;
+                                overflow: hidden;
+                            }
+                            iframe {
+                                width: 100%;
+                                height: 100%;
+                                border: none;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <iframe src="${file.data}"></iframe>
+                    </body>
+                    </html>
+                `);
+            } else {
+                // 没有文件数据，显示提示
+                alert(`查看文档: ${file.name}\n\n在实际应用中，这里应该打开文档查看器或下载文件。`);
+            }
+        }
+        
+        // 引用文档
+        function referenceDocument(file) {
+            // 将文档引用添加到用户输入
+            userInput.value += `\n[引用文档: ${file.name}]`;
+            userInput.focus();
+        }
+        
+        // 查看文件
+        function viewFile(file) {
+            // 在新窗口中打开PDF
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>${file.name}</title>
+                    <style>
+                        body, html {
+                            margin: 0;
+                            padding: 0;
+                            height: 100%;
+                            overflow: hidden;
+                        }
+                        iframe {
+                            width: 100%;
+                            height: 100%;
+                            border: none;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <iframe src="${file.data}"></iframe>
+                </body>
+                </html>
+            `);
+        }
+        
+        // 引用文件
+        function referenceFile(file) {
+            // 将文件引用添加到用户输入
+            userInput.value += `\n[引用文件: ${file.name}]`;
+            userInput.focus();
+        }
+        
+        // 删除文件
+        function deleteFile(fileType, index) {
+            if (confirm('确定要删除这个文件吗？')) {
+                localFiles[fileType].splice(index, 1);
+                saveLocalFiles();
+                renderLocalFiles();
+            }
+        }
+        
+        // 添加用户消息到聊天
+        function addUserMessage(text, imageData = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'user-message');
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('message-content');
+            contentDiv.textContent = text;
+            messageDiv.appendChild(contentDiv);
+            
+            if (imageData) {
+                const img = document.createElement('img');
+                img.src = imageData;
+                img.classList.add('message-image');
+                img.addEventListener('click', function() {
+                    openImageModal(imageData);
+                });
+                messageDiv.appendChild(img);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // 添加到历史
+            chatHistory.push({
+                role: 'user',
+                content: text,
+                image: imageData
+            });
+        }
+        
+        // 添加助手消息到聊天
+        function addAssistantMessage(text, reference = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'assistant-message');
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('message-content');
+            contentDiv.innerHTML = formatMessage(text);
+            messageDiv.appendChild(contentDiv);
+            
+            // 检查消息内容是否有图片，让图片可点击放大
+            const images = contentDiv.querySelectorAll('img');
+            images.forEach(img => {
+                img.classList.add('message-image');
+                img.addEventListener('click', function() {
+                    openImageModal(img.src);
+                });
+            });
+            
+            if (reference) {
+                const referenceDiv = document.createElement('div');
+                referenceDiv.classList.add('message-reference');
+                referenceDiv.textContent = `引用文件: ${reference.name}`;
+                messageDiv.appendChild(referenceDiv);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // 添加到历史
+            chatHistory.push({
+                role: 'assistant',
+                content: text,
+                reference: reference
+            });
+        }
+        
+        // 添加正在加载消息
+        function addLoadingMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'assistant-message');
+            messageDiv.id = 'loadingMessage';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('message-content');
+            
+            const loadingSpan = document.createElement('span');
+            loadingSpan.classList.add('loading');
+            contentDiv.appendChild(loadingSpan);
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // 移除加载消息
+        function removeLoadingMessage() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+        
+        // 格式化消息(简单的markdown支持)
+        function formatMessage(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>')
+                .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="message-image">');
+        }
+        
+        // 发送消息到DeepSeek API
+        async function callDeepSeekAPI(messages) {
+            if (!config.apiKey) {
+                throw new Error('请先设置 DeepSeek API Key');
+            }
+            
+            try {
+                const response = await fetch(config.apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: config.apiModel,
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: 2000
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'API请求失败');
+                }
+                
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('API调用错误:', error);
+                throw error;
+            }
+        }
+        
+        // 提取文件引用
+        function extractFileReference(text) {
+            // 提取引用文件的表达式
+            const fileMatch = text.match(/\[引用文件: (.*?)\]/);
+            const docMatch = text.match(/\[引用文档: (.*?)\]/);
+            const match = fileMatch || docMatch;
+            
+            if (!match) return null;
+            
+            const fileName = match[1];
+            let file = null;
+            
+            // 先查找本地文件
+            if (fileMatch) {
+                // 查找真题文件
+                file = localFiles.examFiles.find(f => f.name === fileName);
+                if (file) return { match: match[0], file: file };
+                
+                // 查找大纲文件
+                file = localFiles.syllabusFiles.find(f => f.name === fileName);
+                if (file) return { match: match[0], file: file };
+            }
+            
+            // 如果是文档引用或未找到本地文件，查找文档目录
+            file = documentsFiles.find(f => f.name === fileName);
+            if (file) return { match: match[0], file: file };
+            
+            return null;
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            
+            // 检查是否有文件引用
+            const fileReference = extractFileReference(text);
+            const cleanText = fileReference ? text.replace(fileReference.match, '').trim() : text;
+            
+            addUserMessage(text);
+            userInput.value = '';
+            
+            // 准备发送到API的消息
+            const messages = chatHistory.map(msg => ({
+                role: msg.role,
+                content: msg.content
+            })).filter(msg => !msg.image); // 过滤掉带图片的消息，简化处理
+            
+            addLoadingMessage();
+            
+            try {
+                let response;
+                let reference = null;
+                
+                if (fileReference) {
+                    // 如果有文件引用，使用文件内容作为上下文
+                    const file = fileReference.file;
+                    reference = file;
+                    
+                    // 判断引用类型
+                    const isLocal = fileReference.match.startsWith('[引用文件');
+                    const docType = file.name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Word';
+                    
+                    // 这里应该调用DeepSeek的文档处理API
+                    // 由于DeepSeek的具体文档API可能不同于文本API，这里使用模拟响应
+                    setTimeout(() => {
+                        removeLoadingMessage();
+                        if (isLocal) {
+                            addAssistantMessage(`我已收到您关于文件"${file.name}"的问题。根据文件内容，我的回答是：\n\n这是一个关于信息学考试的PDF文件，包含了重要的考试信息。请问您对文件内容有什么具体问题吗？`, file);
+                        } else {
+                            addAssistantMessage(`我已收到您关于文档"${file.name}"的问题。这是一个${docType}文档，包含了关于信息学考试的信息。\n\n您希望了解此文档中的哪些具体内容？`, file);
+                        }
+                    }, 1500);
+                } else {
+                    // 普通文本问题
+                    response = await callDeepSeekAPI(messages);
+                    removeLoadingMessage();
+                    addAssistantMessage(response);
+                }
+                
+                // 更新推荐问题
+                updateSuggestions();
+            } catch (error) {
+                removeLoadingMessage();
+                addAssistantMessage(`出错了: ${error.message}`);
+            }
+        }
+        
+        // 处理图片上传
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const imageData = e.target.result;
+                
+                // 添加用户消息与图片
+                addUserMessage('分析这张图片', imageData);
+                
+                addLoadingMessage();
+                
+                try {
+                    // 调用DeepSeek的视觉API进行图片识别
+                    const response = await callDeepSeekVisionAPI(imageData);
+                    removeLoadingMessage();
+                    addAssistantMessage(response);
+                } catch (error) {
+                    removeLoadingMessage();
+                    addAssistantMessage(`处理图片时出错: ${error.message}`);
+                    
+                    // 如果API调用失败，提供备选方案
+                    setTimeout(() => {
+                        addAssistantMessage("由于API调用失败，您可以尝试以下操作：\n\n1. 检查您的API密钥是否正确\n2. 确认您使用的是支持图像识别的DeepSeek API密钥\n3. 尝试使用文本描述图片内容，我可以基于文本回答您的问题");
+                    }, 1000);
+                }
+                
+                // 重置文件输入
+                event.target.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 调用DeepSeek视觉API
+        async function callDeepSeekVisionAPI(imageData) {
+            if (!config.apiKey) {
+                throw new Error('请先设置 DeepSeek API Key');
+            }
+            
+            try {
+                const base64Image = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
+                
+                // 准备发送到API的消息
+                const messages = [
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "text",
+                                text: "请分析这张图片的内容，并简要描述图片中与信息学考试相关的内容。如果是题目或代码，请提供详细解释。"
+                            },
+                            {
+                                type: "image",
+                                image_url: {
+                                    url: `data:image/jpeg;base64,${base64Image}`
+                                }
+                            }
+                        ]
+                    }
+                ];
+                
+                console.log('使用的视觉API端点:', config.visionEndpoint);
+                console.log('使用的视觉模型:', config.visionModel);
+                
+                const response = await fetch(config.visionEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: config.visionModel,
+                        messages: messages,
+                        temperature: 0.2,
+                        max_tokens: 1000
+                    })
+                });
+                
+                // 记录响应状态
+                console.log('API响应状态:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    // 获取响应文本以便调试
+                    const responseText = await response.text();
+                    console.error('API错误响应内容:', responseText);
+                    
+                    // 尝试解析为JSON，如果可能的话
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        throw new Error(errorData.error?.message || `API请求失败: ${response.status}`);
+                    } catch (parseError) {
+                        throw new Error(`API请求失败: ${response.status} ${response.statusText} - ${responseText.substring(0, 100)}`);
+                    }
+                }
+                
+                // 尝试解析响应
+                try {
+                    const data = await response.json();
+                    console.log('API成功响应:', data);
+                    return data.choices[0].message.content;
+                } catch (parseError) {
+                    console.error('解析API响应失败:', parseError);
+                    throw new Error('无法解析API响应，请检查API端点是否正确');
+                }
+            } catch (error) {
+                console.error('视觉API调用错误:', error);
+                throw error;
+            }
+        }
+        
+        // 更新推荐问题
+        function updateSuggestions() {
+            // 根据对话上下文动态生成推荐问题
+            // 这里使用静态问题演示
+            const suggestions = [
+                '信息学（GESP、CSP）考试内容有哪些章节？',
+                '信息学（GESP、CSP）考试评分标准是什么？',
+                '如何提高信息学（GESP、CSP）编程题得分？',
+                '信息学（GESP、CSP）考试注意事项',
+                '推荐的GESP、CSP学习资料'
+            ];
+            
+            suggestionChips.innerHTML = '';
+            suggestions.forEach(suggestion => {
+                const chip = document.createElement('div');
+                chip.classList.add('suggestion-chip');
+                chip.textContent = suggestion;
+                suggestionChips.appendChild(chip);
+            });
+        }
+        
+        // 打开图片模态框
+        function openImageModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            
+            modalImg.src = imageSrc;
+            modal.style.display = 'block';
+        }
+        
+        // 初始化
+        function init() {
+            loadConfig();
+            
+            // 初始化折叠部分
+            initCollapsibleSections();
+            
+            // 如果没有API密钥，自动打开设置
+            if (!config.apiKey) {
+                setTimeout(() => {
+                    settingsModal.style.display = 'block';
+                }, 500);
+            }
+            
+            // 添加图片识别功能提示
+            addAssistantMessage('现在您可以上传图片，我会识别图片内容并回答您的问题。请确保您已设置正确的API密钥和视觉模型。\n\n推荐使用DeepSeek的视觉模型(deepseek-vl)以获得最佳图像识别效果。');
+        }
+        
+        // 页面加载完成后执行
+        window.addEventListener('load', () => {
+            // 确保收缩按钮事件正确绑定
+            if (toggleSidebar) {
+                toggleSidebar.removeEventListener('click', toggleSidebarHandler); // 先移除可能存在的事件处理程序
+                toggleSidebar.addEventListener('click', toggleSidebarHandler);
+            }
+            
+            // 关闭图片模态框的事件
+            document.getElementById('closeImageModal').addEventListener('click', function() {
+                document.getElementById('imageModal').style.display = 'none';
+            });
+            
+            // 点击模态框背景也可以关闭
+            document.getElementById('imageModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+            
+            // 初始化应用
+            init();
+        });
+        
+        // 侧边栏切换处理函数
+        function toggleSidebarHandler() {
+            sidebar.classList.toggle('collapsed');
+            toggleSidebar.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+        }
+    </script>
+</body>
+</html> 
